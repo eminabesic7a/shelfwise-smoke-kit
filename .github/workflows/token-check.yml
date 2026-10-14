@@ -1,0 +1,43 @@
+name: Token check
+
+# Weekly reminder before the senior engineer's token expires. Rotating it:
+#   1. Owner creates a new fine-grained token with the same settings
+#   2. gh secret set QA_BOT_TOKEN   (or Settings > Secrets and variables > Actions)
+#   3. Run this workflow manually to confirm
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+      timezone: 'Europe/Sarajevo'
+  workflow_dispatch:
+
+permissions:
+  issues: write   # the reminder issue uses GITHUB_TOKEN, so it works even if QA_BOT_TOKEN is dead
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check QA_BOT_TOKEN
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.QA_BOT_TOKEN }}
+          QA_BOT_LOGIN: ${{ vars.QA_BOT_LOGIN }}
+          WARN_DAYS: 14
+        run: node scripts/check-token.mjs
+
+      - name: Open a reminder issue (once)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ vars.QA_BOT_LOGIN }}
+        run: |
+          if [ -z "$(gh issue list --label token-expiry --state open --json number -q '.[].number')" ]; then
+            gh issue create --label token-expiry --assignee "$OWNER" \
+              --title "QA bot token is invalid or about to expire" \
+              --body "The \`QA_BOT_TOKEN\` secret failed the weekly check (see ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}). Smoke incidents and the fix agent stop working when it expires. Create a new token and update the secret, then close this issue."
+          fi

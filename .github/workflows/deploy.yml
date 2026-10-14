@@ -1,0 +1,82 @@
+name: Deploy
+
+# Pushing to main builds the app, then deploys it to the platform chosen in the
+# repository variable DEPLOY_TARGET (render | heroku | railway). Run it manually
+# from the Actions tab to pick a target for a one-off deploy.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Platform to deploy to
+        type: choice
+        options: [render, heroku, railway]
+        default: render
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: write   # lets CI publish its report to the dashboard
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      TARGET: ${{ inputs.target || vars.DEPLOY_TARGET || 'render' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Heroku needs full history for git push
+
+      - name: Show target
+        run: echo "Deploying to $TARGET"
+
+      # ---------- Render: secret RENDER_DEPLOY_HOOK_URL ----------
+      - name: Deploy to Render
+        if: env.TARGET == 'render'
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then echo "::error::Secret RENDER_DEPLOY_HOOK_URL is not set"; exit 1; fi
+          curl -fsS -X POST "$HOOK"
+
+      # ---------- Heroku: secret HEROKU_API_KEY, variable HEROKU_APP_NAME ----------
+      - name: Deploy to Heroku
+        if: env.TARGET == 'heroku'
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ vars.HEROKU_APP_NAME }}
+        run: |
+          if [ -z "$HEROKU_API_KEY" ] || [ -z "$HEROKU_APP_NAME" ]; then
+            echo "::error::Set secret HEROKU_API_KEY and variable HEROKU_APP_NAME"; exit 1
+          fi
+          git push --force "https://heroku:${HEROKU_API_KEY}@git.heroku.com/${HEROKU_APP_NAME}.git" HEAD:refs/heads/main
+
+      # ---------- Railway: secret RAILWAY_TOKEN (project token), variable RAILWAY_SERVICE ----------
+      - name: Deploy to Railway
+        if: env.TARGET == 'railway'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_SERVICE: ${{ vars.RAILWAY_SERVICE }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then echo "::error::Secret RAILWAY_TOKEN is not set"; exit 1; fi
+          npx -y @railway/cli up --ci ${RAILWAY_SERVICE:+--service "$RAILWAY_SERVICE"}
+
+      # ---------- Optional: wait for the live app (variable APP_URL) ----------
+      - name: Check the live app
+        if: vars.APP_URL != ''
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fs "$APP_URL/api/health"; then exit 0; fi
+            echo "Waiting for $APP_URL ..."; sleep 10
+          done
+          echo "::error::$APP_URL/api/health did not respond"; exit 1

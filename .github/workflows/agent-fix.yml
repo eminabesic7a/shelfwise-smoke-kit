@@ -1,0 +1,150 @@
+name: Fix agent
+
+# Starts when the smoke workflow opens an incident issue. Can be re-run by hand for any issue.
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to fix'
+        required: true
+        type: number
+
+permissions:
+  contents: read   # all writes use QA_BOT_TOKEN so that the pushed branch and PR trigger CI
+
+concurrency:
+  group: fix-agent-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  fix:
+    # Only incidents opened by the QA bot account with the agent label. Anyone else's issue
+    # (or an issue without agent:fix) is ignored, which blocks prompt injection by strangers.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (contains(github.event.issue.labels.*.name, 'smoke-failure') &&
+       contains(github.event.issue.labels.*.name, 'agent:fix') &&
+       github.event.issue.user.login == vars.QA_BOT_LOGIN)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ISSUE: ${{ github.event.issue.number || inputs.issue_number }}
+      BRANCH: fix/smoke-issue-${{ github.event.issue.number || inputs.issue_number }}
+      REVIEWER: ${{ vars.FIX_REVIEWER }}
+      GH_TOKEN: ${{ secrets.QA_BOT_TOKEN }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.QA_BOT_TOKEN }}   # pushes made with this token trigger CI
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm install -g @anthropic-ai/claude-code
+
+      - name: Tell the issue the agent has started
+        run: |
+          gh issue comment "$ISSUE" --body "Fix agent started. Follow along: $RUN_URL"
+
+      # Issue text goes into a FILE that the agent reads. Never paste issue titles or bodies
+      # into run: scripts with \${{ }}: that is a script-injection hole.
+      - name: Prepare branch and context
+        run: |
+          gh issue view "$ISSUE" --json number,title,body,url > agent-issue.json
+          git switch -C "$BRANCH"
+
+      - name: Run Claude Code
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "$(cat .github/agent/fix-prompt.md)" \
+            --permission-mode dontAsk \
+            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npx playwright test:*),Bash(npm run build),Bash(git diff:*),Bash(git status)" \
+            --max-turns 40 \
+            --max-budget-usd 5 \
+            | tee agent-output.log
+
+      - name: Guard - only application code may change
+        run: scripts/guard-diff.sh
+
+      # Do not trust the agent's own claim: run the smoke suite again, independently.
+      - name: Verify the fix with the smoke tests
+        run: npx playwright test --grep @smoke
+
+      - name: Job summary
+        if: always()
+        run: |
+          node scripts/summarize-results.mjs "Fix verification (smoke tests)"
+          { echo; echo "## Agent summary"; cat agent-summary.md 2>/dev/null || echo "_The agent wrote no summary._"; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload verification report and agent log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fix-agent-${{ env.ISSUE }}
+          path: |
+            playwright-report/
+            agent-output.log
+            agent-summary.md
+          retention-days: 30
+
+      - name: Commit and push the fix
+        env:
+          QA_BOT_LOGIN: ${{ vars.QA_BOT_LOGIN }}
+        run: |
+          git add server client
+          git -c user.name="Smoke fix agent" -c user.email="${QA_BOT_LOGIN}@users.noreply.github.com" \
+            commit -m "fix: resolve smoke test failure (#${ISSUE})" \
+                   -m "Proposed by the Claude Code fix agent and verified by the smoke suite. Fixes #${ISSUE}"
+          git push --force-with-lease origin "$BRANCH"
+
+      - name: Open the pull request, request review, assign the issue
+        run: |
+          {
+            echo "Fixes #${ISSUE}"
+            echo
+            echo "## What the agent found and changed"
+            cat agent-summary.md 2>/dev/null || echo "_No summary written._"
+            echo
+            echo "## Verification"
+            echo "- Smoke tests passed in the agent workflow: $RUN_URL"
+            echo "- CI runs the full Playwright suite on this pull request."
+            echo
+            echo "> Written by an AI agent. Review it like any other change before merging."
+          } > pr-body.md
+
+          if gh pr view "$BRANCH" --json url >/dev/null 2>&1; then
+            gh pr edit "$BRANCH" --body-file pr-body.md
+            PR_URL=$(gh pr view "$BRANCH" --json url -q .url)
+          else
+            PR_URL=$(gh pr create --base "${{ github.event.repository.default_branch }}" --head "$BRANCH" \
+              --title "fix: $(jq -r .title agent-issue.json)" \
+              --body-file pr-body.md --reviewer "$REVIEWER" --label agent-generated)
+          fi
+
+          gh issue edit "$ISSUE" --add-assignee "$REVIEWER" --remove-label agent:fix --add-label agent:pr-open
+          gh issue comment "$ISSUE" --body "Proposed fix: $PR_URL (review requested from @$REVIEWER)"
+
+      - name: Report failure on the issue
+        if: failure()
+        run: |
+          {
+            echo "The fix agent could **not** produce a verified fix. A human needs to take over."
+            echo
+            echo "Workflow run (logs, report, agent output): $RUN_URL"
+            echo
+            echo "### Agent notes"
+            cat agent-summary.md 2>/dev/null || echo "_None._"
+          } > failure.md
+          gh issue comment "$ISSUE" --body-file failure.md
+          gh issue edit "$ISSUE" --remove-label agent:fix --add-label agent:failed --add-assignee "$REVIEWER" || true

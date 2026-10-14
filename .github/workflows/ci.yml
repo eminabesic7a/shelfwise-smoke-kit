@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main, gh-pages]   # main is tested by deploy.yml, which calls this workflow
+  workflow_call:
+
+permissions:
+  contents: write   # publish the report to the gh-pages dashboard
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Build app
+        run: npm run build
+
+      # Full suite (smoke + regression) against a locally started production build.
+      - name: Run Playwright tests
+        id: tests
+        continue-on-error: true
+        run: npx playwright test
+
+      - name: Report URL
+        if: always()
+        run: echo "REPORT_URL=${{ vars.DASHBOARD_URL && format('{0}/runs/{1}-{2}/index.html', vars.DASHBOARD_URL, github.run_id, github.run_attempt) || '' }}" >> "$GITHUB_ENV"
+
+      - name: Job summary
+        if: always()
+        run: node scripts/summarize-results.mjs "CI tests"
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-ci
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Publish to dashboard
+        # Fork PRs get a read-only token, so skip them.
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/publish-dashboard.sh "CI tests"
+
+      - name: Fail the job if tests failed
+        if: steps.tests.outcome == 'failure'
+        run: exit 1

@@ -1,0 +1,16 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo.
+# Deploys are triggered from GitHub Actions (deploy hook), so Render's own auto-deploy is off.
+services:
+  - type: web
+    name: shelfwise
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ENABLE_TEST_API
+        value: "true"

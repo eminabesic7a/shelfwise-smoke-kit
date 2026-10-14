@@ -1,0 +1,111 @@
+name: Smoke tests
+
+on:
+  schedule:
+    # Daily at 13:00 local time. Change the time and/or timezone here (IANA name, DST handled by GitHub).
+    # Note: scheduled runs can start a few minutes late when GitHub Actions is busy.
+    - cron: '0 13 * * *'
+      timezone: 'Europe/Sarajevo'
+  workflow_run:
+    # Also verify every deployment straight away.
+    workflows: [Deploy]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'URL to test (empty = SMOKE_BASE_URL variable, or a local build if that is empty too)'
+        required: false
+      report_issues:
+        description: 'Create / update / close the smoke incident issue'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # dashboard publishing (issues are handled with QA_BOT_TOKEN)
+
+concurrency:
+  group: smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    # After a deploy, only run if the deploy succeeded.
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_URL: ${{ inputs.base_url || vars.SMOKE_BASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Check QA bot token
+        id: token
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.QA_BOT_TOKEN }}
+          QA_BOT_LOGIN: ${{ vars.QA_BOT_LOGIN }}
+        run: node scripts/check-token.mjs
+
+      - name: Wake up the deployed app
+        # Free hosting tiers sleep when idle. Give the app up to 3 minutes before testing,
+        # so a cold start is never reported as an outage.
+        if: env.BASE_URL != ''
+        run: |
+          for i in $(seq 1 18); do
+            if curl -fsS --max-time 20 "$BASE_URL/api/health"; then echo; echo "App is up"; exit 0; fi
+            echo "Waiting for $BASE_URL ($i/18)..."; sleep 10
+          done
+          echo "::warning::App did not answer /api/health within 3 minutes; tests will report the failure"
+
+      - name: Run smoke tests
+        id: smoke
+        continue-on-error: true
+        run: npx playwright test --grep @smoke
+
+      - name: Report URL
+        if: always()
+        run: echo "REPORT_URL=${{ vars.DASHBOARD_URL && format('{0}/runs/{1}-{2}/index.html', vars.DASHBOARD_URL, github.run_id, github.run_attempt) || '' }}" >> "$GITHUB_ENV"
+
+      - name: Job summary
+        if: always()
+        run: node scripts/summarize-results.mjs "Smoke tests"
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-smoke
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Publish to dashboard
+        if: always()
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: scripts/publish-dashboard.sh "Smoke tests"
+
+      # Uses the senior engineer's token, NOT GITHUB_TOKEN: issues created with GITHUB_TOKEN
+      # do not trigger other workflows, so the fix agent would never start.
+      - name: Create, update or close the incident issue
+        if: always() && (github.event_name != 'workflow_dispatch' || inputs.report_issues)
+        env:
+          GH_TOKEN: ${{ secrets.QA_BOT_TOKEN }}
+          TARGET_URL: ${{ env.BASE_URL }}
+          AGENT_AUTOFIX: ${{ vars.AGENT_AUTOFIX }}
+        run: node scripts/smoke-issues.mjs
+
+      - name: Fail the job if smoke tests failed
+        if: steps.smoke.outcome == 'failure'
+        run: exit 1

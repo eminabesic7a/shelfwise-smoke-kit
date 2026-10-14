@@ -1,0 +1,19 @@
+node_modules/
+client/dist/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+.DS_Store
+# Playwright (for the candidate's tests)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+reports/
+site/
+# Fix-agent scratch files (never committed)
+agent-issue.json
+agent-summary.md
+agent-output.log
+pr-body.md
