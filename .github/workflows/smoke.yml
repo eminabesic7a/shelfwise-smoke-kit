@@ -99,7 +99,7 @@ jobs:
       # Uses the senior engineer's token, NOT GITHUB_TOKEN: issues created with GITHUB_TOKEN
       # do not trigger other workflows, so the fix agent would never start.
       - name: Create, update or close the incident issue
-        if: always() && (github.event_name != 'workflow_dispatch' || inputs.report_issues)
+                if: always() && steps.token.outcome == 'success' && (github.event_name != 'workflow_dispatch' || inputs.report_issues)
         env:
           GH_TOKEN: ${{ secrets.QA_BOT_TOKEN }}
           TARGET_URL: ${{ env.BASE_URL }}
