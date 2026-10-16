@@ -22,7 +22,8 @@ gh variable set FIX_REVIEWER --body "$FIX_REVIEWER"
 gh variable set AGENT_AUTOFIX --body "true"
 
 echo
-echo "Labels and variables are set. Now add the secrets (you will be prompted for each value):"
+echo "Labels and variables are set. Now the token owner adds the secret (prompted for the value):"
 echo "  gh secret set QA_BOT_TOKEN"
-echo "  gh secret set ANTHROPIC_API_KEY"
-echo "Optional variables: SMOKE_BASE_URL (deployed app URL), DASHBOARD_URL (GitHub Pages URL)"
+echo "The fix agent runs a free model with Ollama inside the workflow, so no AI API key is needed."
+echo "Optional variables: SMOKE_BASE_URL (deployed app URL), DASHBOARD_URL (GitHub Pages URL),"
+echo "  FIX_MODEL (Ollama model name, default qwen2.5-coder:3b)"

@@ -1,0 +1,12 @@
+--- a/server/src/routes/books.js
++++ b/server/src/routes/books.js
+@@ -32,7 +32,8 @@
+   if (available && !['true', 'false'].includes(available)) errors.available = 'Available must be true or false';
+   if (Object.keys(errors).length) throw badRequest('Invalid query parameters', errors);
+ 
+-  let items = store.db().books.map(store.toBookDto);
++  let items = [];
++  // items = store.db().books.map(store.toBookDto);
+ 
+   const q = String(search).trim().toLowerCase();
+   if (q) {
