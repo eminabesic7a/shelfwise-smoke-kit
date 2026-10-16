@@ -34,6 +34,7 @@ jobs:
       BRANCH: fix/smoke-issue-${{ github.event.issue.number || inputs.issue_number }}
       REVIEWER: ${{ vars.FIX_REVIEWER }}
       GH_TOKEN: ${{ secrets.QA_BOT_TOKEN }}
+      FIX_MODEL: ${{ vars.FIX_MODEL || 'qwen2.5-coder:3b' }}   # any model from ollama.com/library
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +51,27 @@ jobs:
         run: |
           npm ci
           npx playwright install --with-deps chromium
-          npm install -g @anthropic-ai/claude-code
+
+      # The AI model runs right here on the runner: free, no account, no API key.
+      # The downloaded model (about 2 GB) is cached, so later runs start faster.
+      - name: Cache the AI model
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama/models
+          key: ollama-${{ env.FIX_MODEL }}
+
+      - name: Start Ollama and load the model
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          sudo systemctl stop ollama 2>/dev/null || true   # run our own server so the cache path is used
+          mkdir -p ~/.ollama/models
+          OLLAMA_MODELS="$HOME/.ollama/models" nohup ollama serve > /tmp/ollama.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:11434/api/version; then echo; break; fi
+            sleep 1
+          done
+          ollama pull "$FIX_MODEL"
+          ollama list
 
       - name: Tell the issue the agent has started
         run: |
@@ -63,19 +84,15 @@ jobs:
           gh issue view "$ISSUE" --json number,title,body,url > agent-issue.json
           git switch -C "$BRANCH"
 
-      - name: Run Claude Code
+      # The script asks the model for a find/replace edit, applies it and re-runs the
+      # smoke tests (up to FIX_ATTEMPTS times). See scripts/model-fix.mjs.
+      - name: Ask the AI model for a fix
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          claude -p "$(cat .github/agent/fix-prompt.md)" \
-            --permission-mode dontAsk \
-            --allowedTools "Read,Grep,Glob,Edit,Write,Bash(npx playwright test:*),Bash(npm run build),Bash(git diff:*),Bash(git status)" \
-            --max-turns 40 \
-            --max-budget-usd 5 \
-            | tee agent-output.log
+          FIX_ATTEMPTS: '2'
+        run: node scripts/model-fix.mjs | tee agent-output.log
 
       - name: Guard - only application code may change
-        run: scripts/guard-diff.sh
+        run: bash scripts/guard-diff.sh
 
       # Do not trust the agent's own claim: run the smoke suite again, independently.
       - name: Verify the fix with the smoke tests
@@ -96,6 +113,7 @@ jobs:
             playwright-report/
             agent-output.log
             agent-summary.md
+            /tmp/ollama.log
           retention-days: 30
 
       - name: Commit and push the fix
@@ -105,7 +123,7 @@ jobs:
           git add server client
           git -c user.name="Smoke fix agent" -c user.email="${QA_BOT_LOGIN}@users.noreply.github.com" \
             commit -m "fix: resolve smoke test failure (#${ISSUE})" \
-                   -m "Proposed by the Claude Code fix agent and verified by the smoke suite. Fixes #${ISSUE}"
+                   -m "Proposed by ${FIX_MODEL} (Ollama) and verified by the smoke suite. Fixes #${ISSUE}"
           git push --force-with-lease origin "$BRANCH"
 
       - name: Open the pull request, request review, assign the issue
