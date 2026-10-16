@@ -27,3 +27,15 @@ test('a member with an overdue loan cannot borrow', async ({ page }) => {
   await page.getByRole('button', { name: 'Lend book' }).click();
   await expect(page.getByTestId('lend-error')).toContainText('overdue loans');
 });
+
+
+test('the add book form displays its required fields', async ({ page }) => {
+  await page.goto('/books/new');
+
+  await expect(page.getByLabel('Title')).toBeVisible();
+  await expect(page.getByLabel('Author')).toBeVisible();
+  await expect(page.getByLabel('ISBN')).toBeVisible();
+  await expect(page.getByLabel('Genre')).toBeVisible();
+  await expect(page.getByLabel('Year published')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add book' })).toBeVisible();
+});
