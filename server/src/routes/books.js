@@ -32,7 +32,8 @@ router.get('/', (req, res) => {
   if (available && !['true', 'false'].includes(available)) errors.available = 'Available must be true or false';
   if (Object.keys(errors).length) throw badRequest('Invalid query parameters', errors);
 
-  let items = store.db().books.map(store.toBookDto);
+ // let items = store.db().books.map(store.toBookDto);
+ let items = [];
 
   const q = String(search).trim().toLowerCase();
   if (q) {
