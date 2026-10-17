@@ -1,0 +1,16 @@
+{
+  "runKey": "38894321764-1",
+  "workflow": "CI tests",
+  "status": "passed",
+  "passed": 11,
+  "failed": 0,
+  "flaky": 0,
+  "skipped": 0,
+  "durationMs": 4918,
+  "failures": [],
+  "branch": "test/ollama-agent-demo",
+  "sha": "5450665",
+  "event": "push",
+  "runUrl": "https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38894321764",
+  "finishedAt": "2026-10-16T11:32:07.578Z"
+}
