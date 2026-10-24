@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shelfwise test dashboard</title>
+<style>
+:root{--ink:#1c2a25;--muted:#5b6863;--line:#d6dcd4;--ok:#2f7a52;--bad:#a3302a;--bg:#f3f5f1}
+body{margin:0;font:15px/1.5 system-ui,sans-serif;color:var(--ink);background:var(--bg)}
+main{max-width:1200px;margin:0 auto;padding:28px 20px}
+h1{font:600 1.8rem Georgia,serif;margin:0 0 4px}.sub{color:var(--muted);margin:0 0 24px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:28px}
+.card{background:#fff;border:1px solid var(--line);border-top:5px solid var(--ok);border-radius:6px;padding:16px 18px}
+.card.failed{border-top-color:var(--bad)}.card h2{margin:0;font-size:1.1rem}
+.state{font:600 1.5rem Georgia,serif;margin:4px 0}.card.failed .state{color:var(--bad)}.card.passed .state{color:var(--ok)}
+.meta{color:var(--muted);margin:2px 0}.strip{display:flex;gap:3px;margin:10px 0}
+.tick{width:12px;height:22px;border-radius:2px;background:var(--ok)}.tick.failed{background:var(--bad)}
+.wrap{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%}th,td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:.85rem;color:var(--muted)}.badge{padding:1px 8px;border-radius:999px;font-size:.8rem;font-weight:600}
+.badge.passed{background:#e5f0ea;color:var(--ok)}.badge.failed{background:#f8e9e7;color:var(--bad)}
+code{font-size:.85em}a{color:#1f4a3c}
+</style></head>
+<body><main>
+<h1>Shelfwise test dashboard</h1>
+<p class="sub">Updated 2026-10-24 14:09 UTC. Keeps the last 30 runs of each workflow.</p>
+<div class="cards"><section class="card failed">
+  <h2>CI tests</h2>
+  <p class="state">Failing</p>
+  <p class="meta">Last run 2026-10-16 11:42 UTC on <code>test/ollama-agent-demo</code>. 8 passed, 3 failed, 0 flaky.</p>
+  <p class="meta">90% of the last 10 runs passed.</p>
+  <div class="strip" aria-label="Recent runs, oldest first"><a class="tick passed" href="runs/38729124985-1/index.html" title="2026-10-15 11:42 UTC: passed"></a><a class="tick passed" href="runs/38729588854-1/index.html" title="2026-10-15 11:46 UTC: passed"></a><a class="tick passed" href="runs/38887948495-1/index.html" title="2026-10-16 10:33 UTC: passed"></a><a class="tick passed" href="runs/38893419635-1/index.html" title="2026-10-16 11:23 UTC: passed"></a><a class="tick passed" href="runs/38893813013-1/index.html" title="2026-10-16 11:27 UTC: passed"></a><a class="tick passed" href="runs/38893925214-1/index.html" title="2026-10-16 11:28 UTC: passed"></a><a class="tick passed" href="runs/38894112985-1/index.html" title="2026-10-16 11:30 UTC: passed"></a><a class="tick passed" href="runs/38894321764-1/index.html" title="2026-10-16 11:32 UTC: passed"></a><a class="tick passed" href="runs/38894562330-1/index.html" title="2026-10-16 11:34 UTC: passed"></a><a class="tick failed" href="runs/38895461950-1/index.html" title="2026-10-16 11:42 UTC: failed"></a></div>
+  <p><a href="runs/38895461950-1/index.html">Open latest report</a></p>
+</section>
+<section class="card passed">
+  <h2>Smoke tests</h2>
+  <p class="state">Passing</p>
+  <p class="meta">Last run 2026-10-24 14:09 UTC on <code>main</code>. 8 passed, 0 failed, 0 flaky.</p>
+  <p class="meta">93% of the last 15 runs passed.</p>
+  <div class="strip" aria-label="Recent runs, oldest first"><a class="tick passed" href="runs/38729718376-1/index.html" title="2026-10-15 11:47 UTC: passed"></a><a class="tick passed" href="runs/38731545523-1/index.html" title="2026-10-15 12:02 UTC: passed"></a><a class="tick passed" href="runs/38732102840-1/index.html" title="2026-10-15 12:06 UTC: passed"></a><a class="tick passed" href="runs/38888060636-1/index.html" title="2026-10-16 10:34 UTC: passed"></a><a class="tick passed" href="runs/38894233810-1/index.html" title="2026-10-16 11:31 UTC: passed"></a><a class="tick failed" href="runs/38895752277-1/index.html" title="2026-10-16 11:45 UTC: failed"></a><a class="tick passed" href="runs/38920743484-1/index.html" title="2026-10-16 15:03 UTC: passed"></a><a class="tick passed" href="runs/39038786288-1/index.html" title="2026-10-17 13:59 UTC: passed"></a><a class="tick passed" href="runs/39134862015-1/index.html" title="2026-10-18 14:12 UTC: passed"></a><a class="tick passed" href="runs/39292292861-1/index.html" title="2026-10-19 17:14 UTC: passed"></a><a class="tick passed" href="runs/39448198872-1/index.html" title="2026-10-20 15:25 UTC: passed"></a><a class="tick passed" href="runs/39628038992-1/index.html" title="2026-10-21 15:42 UTC: passed"></a><a class="tick passed" href="runs/39807402305-1/index.html" title="2026-10-22 15:43 UTC: passed"></a><a class="tick passed" href="runs/39978794799-1/index.html" title="2026-10-23 15:30 UTC: passed"></a><a class="tick passed" href="runs/40101204345-1/index.html" title="2026-10-24 14:09 UTC: passed"></a></div>
+  <p><a href="runs/40101204345-1/index.html">Open latest report</a></p>
+</section></div>
+<h2>Run history</h2>
+<div class="wrap"><table>
+<thead><tr><th>Finished</th><th>Workflow</th><th>Status</th><th>Passed</th><th>Failed</th><th>Flaky</th><th>Time</th><th>Branch / commit</th><th>Failing tests</th><th></th></tr></thead>
+<tbody><tr class="passed">
+  <td>2026-10-24 14:09 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>5 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/40101204345-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/40101204345">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-23 15:30 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>5 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/39978794799-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/39978794799">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-22 15:43 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>4 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/39807402305-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/39807402305">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-21 15:42 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>6 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/39628038992-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/39628038992">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-20 15:25 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>5 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/39448198872-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/39448198872">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-19 17:14 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>6 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/39292292861-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/39292292861">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-18 14:12 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>7 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/39134862015-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/39134862015">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-17 13:59 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>6 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/39038786288-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/39038786288">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 15:03 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>5 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/38920743484-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38920743484">Run</a></td>
+</tr>
+<tr class="failed">
+  <td>2026-10-16 11:45 UTC</td><td>Smoke tests</td>
+  <td><span class="badge failed">failed</span></td>
+  <td>5</td><td>3</td><td>0</td><td>28 s</td>
+  <td><code>test/ollama-agent-demo</code> <code>20c42cb</code></td>
+  <td>API smoke › books endpoint returns a non-empty catalogue; UI smoke › dashboard shows the bookshelf; UI smoke › book catalogue lists books and opens a book</td>
+  <td><a href="runs/38895752277-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38895752277">Run</a></td>
+</tr>
+<tr class="failed">
+  <td>2026-10-16 11:42 UTC</td><td>CI tests</td>
+  <td><span class="badge failed">failed</span></td>
+  <td>8</td><td>3</td><td>0</td><td>28 s</td>
+  <td><code>test/ollama-agent-demo</code> <code>20c42cb</code></td>
+  <td>API smoke › books endpoint returns a non-empty catalogue; UI smoke › dashboard shows the bookshelf; UI smoke › book catalogue lists books and opens a book</td>
+  <td><a href="runs/38895461950-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38895461950">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 11:34 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>11</td><td>0</td><td>0</td><td>6 s</td>
+  <td><code>test/ollama-agent-demo</code> <code>4c209bb</code></td>
+  <td></td>
+  <td><a href="runs/38894562330-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38894562330">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 11:32 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>11</td><td>0</td><td>0</td><td>5 s</td>
+  <td><code>test/ollama-agent-demo</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/38894321764-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38894321764">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 11:31 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>4 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/38894233810-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38894233810">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 11:30 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>11</td><td>0</td><td>0</td><td>6 s</td>
+  <td><code>main</code> <code>5450665</code></td>
+  <td></td>
+  <td><a href="runs/38894112985-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38894112985">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 11:28 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>11</td><td>0</td><td>0</td><td>6 s</td>
+  <td><code>test/ollama-agent</code> <code>f67d69f</code></td>
+  <td></td>
+  <td><a href="runs/38893925214-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38893925214">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 11:27 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>11</td><td>0</td><td>0</td><td>5 s</td>
+  <td><code>test/ollama-agent</code> <code>a54bd6f</code></td>
+  <td></td>
+  <td><a href="runs/38893813013-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38893813013">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 11:23 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>11</td><td>0</td><td>0</td><td>6 s</td>
+  <td><code>test/ollama-agent</code> <code>0084d17</code></td>
+  <td></td>
+  <td><a href="runs/38893419635-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38893419635">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 10:34 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>4 s</td>
+  <td><code>main</code> <code>5728199</code></td>
+  <td></td>
+  <td><a href="runs/38888060636-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38888060636">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-16 10:33 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>11</td><td>0</td><td>0</td><td>8 s</td>
+  <td><code>main</code> <code>5728199</code></td>
+  <td></td>
+  <td><a href="runs/38887948495-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38887948495">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-15 12:06 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>4 s</td>
+  <td><code>main</code> <code>784a239</code></td>
+  <td></td>
+  <td><a href="runs/38732102840-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38732102840">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-15 12:02 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>5 s</td>
+  <td><code>main</code> <code>784a239</code></td>
+  <td></td>
+  <td><a href="runs/38731545523-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38731545523">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-15 11:47 UTC</td><td>Smoke tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>8</td><td>0</td><td>0</td><td>4 s</td>
+  <td><code>main</code> <code>784a239</code></td>
+  <td></td>
+  <td><a href="runs/38729718376-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38729718376">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-15 11:46 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>10</td><td>0</td><td>0</td><td>7 s</td>
+  <td><code>main</code> <code>784a239</code></td>
+  <td></td>
+  <td><a href="runs/38729588854-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38729588854">Run</a></td>
+</tr>
+<tr class="passed">
+  <td>2026-10-15 11:42 UTC</td><td>CI tests</td>
+  <td><span class="badge passed">passed</span></td>
+  <td>10</td><td>0</td><td>0</td><td>6 s</td>
+  <td><code>main</code> <code>db5305b</code></td>
+  <td></td>
+  <td><a href="runs/38729124985-1/index.html">Report</a> <a href="https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38729124985">Run</a></td>
+</tr></tbody></table></div>
+</main></body></html>

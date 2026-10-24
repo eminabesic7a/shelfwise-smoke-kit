@@ -1,0 +1,20 @@
+{
+  "runKey": "38895752277-1",
+  "workflow": "Smoke tests",
+  "status": "failed",
+  "passed": 5,
+  "failed": 3,
+  "flaky": 0,
+  "skipped": 0,
+  "durationMs": 28468,
+  "failures": [
+    "API smoke › books endpoint returns a non-empty catalogue",
+    "UI smoke › dashboard shows the bookshelf",
+    "UI smoke › book catalogue lists books and opens a book"
+  ],
+  "branch": "test/ollama-agent-demo",
+  "sha": "20c42cb",
+  "event": "workflow_dispatch",
+  "runUrl": "https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/38895752277",
+  "finishedAt": "2026-10-16T11:45:25.933Z"
+}
