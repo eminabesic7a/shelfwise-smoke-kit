@@ -1,0 +1,16 @@
+{
+  "runKey": "45056794555-1",
+  "workflow": "Smoke tests",
+  "status": "passed",
+  "passed": 8,
+  "failed": 0,
+  "flaky": 0,
+  "skipped": 0,
+  "durationMs": 6288,
+  "failures": [],
+  "branch": "main",
+  "sha": "5450665",
+  "event": "schedule",
+  "runUrl": "https://github.com/eminabesic7a/shelfwise-smoke-kit/actions/runs/45056794555",
+  "finishedAt": "2026-11-22T18:45:30.693Z"
+}
